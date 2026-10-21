@@ -1,0 +1,14 @@
+{
+  "name": "ctx-suite",
+  "description": "Claude Code plugins for cross-session project memory.",
+  "owner": {
+    "name": "Eric McKay"
+  },
+  "plugins": [
+    {
+      "name": "ctx",
+      "source": "./",
+      "description": "Cross-session project memory in .context/, with autosave."
+    }
+  ]
+}

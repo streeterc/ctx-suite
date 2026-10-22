@@ -14,8 +14,14 @@ Requires `jq`, `flock`, `setsid`, `python3`, and `claude` on the PATH that hooks
 - `/ctx:init`: set up `.context/` in a project (once), then commit it.
 - `/ctx:save`: checkpoint the session. `/ctx:resume`: briefing of where things stand.
 - `/ctx:idea`, `/ctx:decision`, `/ctx:roadmap`: quick records. `/ctx:curate`: weekly tidy.
+- `/ctx:handoff`: hand-off note (goal, done, left, key files, open questions) before starting fresh.
+  Goes through `/ctx:save` in `.context/` projects; elsewhere it writes `HANDOFF.md`.
 
 ## Hooks
+- **SessionStart canary** (every project): tells Claude to start every reply with `[<hostname>]`. If the tag stops
+  appearing, the start of the session has been lost: run `/ctx:handoff`, then `/clear`. Claude is also told to say so
+  when the session gets very long. It's planted again after compaction, and a fresh `HANDOFF.md` is injected on startup/clear.
+  Opt out with `CTX_CANARY=0` in the environment or `canary=0` in `.context/config`.
 - **SessionStart** injects STATE.md, the last session log, and uncommitted changes (projects with `.context/` only).
 - **SessionEnd / PreCompact** autosave: a detached Haiku run writes a log covering work since this host's last log,
   then commits `.context/` (per `.context/config`: `autocommit`, `autopush`, `autofetch`). Output: `~/.cache/ctx-autosave.log`.

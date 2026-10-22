@@ -21,7 +21,7 @@ You maintain the `.context/` directory at the git root (or cwd if there's no rep
 ## Tasks
 **init**: create the layout. Seed STATE.md and ROADMAP.md from README, package manifests, TODO/FIXME grep, and `git log --oneline -20`, and label anything you inferred `(inferred)`. If CLAUDE.md exists and doesn't mention .context, append:
 `## Project context\nLiving context lives in .context/ (STATE.md is loaded at session start). Use /ctx:save after meaningful work.`
-Also create `.context/config` with `autocommit=1`, `autopush=0`, `autofetch=1` (one per line, each preceded by its own `# comment` line; never put comments on the value line), and add `.context/.autosave.lock` to the repo's .gitignore.
+Also create `.context/config` with `autocommit=1`, `autopush=0`, `autofetch=1`, `canary=1` (one per line, each preceded by its own `# comment` line; never put comments on the value line), and add `.context/.autosave.lock` to the repo's .gitignore.
 Never overwrite existing .context files.
 
 **save** (input: a session summary): 

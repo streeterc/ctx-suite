@@ -25,12 +25,17 @@ digest="$(python3 "$here/extract.py" "$transcript" "$cutoff")" || exit 0
 logfile=".context/log/$(date +%Y-%m-%d-%H%M)-$host.md"
 scribe="$(awk 'f>=2; /^---$/{f++}' "$here/../agents/scribe.md")"   # agent body without frontmatter
 echo "=== $(date '+%F %T') $event $root" >>"$HOME/.cache/ctx-autosave.log"
+# Lean run: only the file tools, no MCP servers or skill listing, and the scribe prompt in place of
+# Claude Code's default system prompt (cuts the fixed load per turn from ~23k tokens to ~4k)
+tools="Read,Write,Edit,Glob,Grep"
 CTX_AUTOSAVE=1 claude -p --model haiku --no-session-persistence \
-  --permission-mode acceptEdits --allowedTools "Read,Write,Edit,Glob,Grep" \
-  --append-system-prompt "$scribe" >>"$HOME/.cache/ctx-autosave.log" 2>&1 <<PROMPT
-Task: save (automatic ${event} checkpoint). Date: $(date '+%F %H:%M'). Host: $host.
+  --permission-mode acceptEdits --tools "$tools" --allowedTools "$tools" \
+  --strict-mcp-config --disable-slash-commands \
+  --system-prompt "$scribe" >>"$HOME/.cache/ctx-autosave.log" 2>&1 <<PROMPT
+Task: save (automatic ${event} checkpoint). Date: $(date '+%F %H:%M'). Host: $host. Project root: $root
 You have no Bash in this run: use the date and host given here instead of running date/hostname.
-Write the session log to exactly: $logfile  (title line should end with "(auto)").
+File tools need absolute paths: every .context path below is relative to the project root.
+Write the session log to exactly: $root/$logfile  (title line should end with "(auto)").
 Then update .context/STATE.md, ROADMAP.md, IDEAS.md, DECISIONS.md as your instructions say.
 Most important: an accurate "Open threads / next steps" section capturing exactly what was in progress
 at the END of the transcript, so the next session can resume mid-task.

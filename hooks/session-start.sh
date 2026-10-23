@@ -20,7 +20,7 @@ fi
 if git -C "$root" status -sb 2>/dev/null | head -1 | grep -q behind; then
   echo "WARNING: branch is behind its remote; another workstation may have newer context. Tell the user to \`git pull\` before continuing."
 fi
-[ -f "$ctx/STATE.md" ] && { echo; echo "## STATE.md"; head -n 45 "$ctx/STATE.md"; }
+[ -f "$ctx/STATE.md" ] && { echo; echo "## STATE.md"; head -n 40 "$ctx/STATE.md"; }
 last="$(ls -1 "$ctx/log"/*.md 2>/dev/null | sort | tail -1)"
 [ -n "$last" ] && { echo; echo "## Last session log (${last#"$root"/})"; head -n 40 "$last"; }
 dirty="$(git -C "$root" status --porcelain 2>/dev/null | grep -v ' .context/' | head -15)"

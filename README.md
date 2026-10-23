@@ -15,15 +15,18 @@ Requires `jq`, `flock`, `setsid`, `python3`, and `claude` on the PATH that hooks
 - `/ctx:save`: checkpoint the session. `/ctx:resume`: briefing of where things stand.
 - `/ctx:idea`, `/ctx:decision`, `/ctx:roadmap`: quick records. `/ctx:curate`: weekly tidy.
 - `/ctx:handoff`: hand-off note (goal, done, left, key files, open questions) before starting fresh.
-  Goes through `/ctx:save` in `.context/` projects; elsewhere it writes `HANDOFF.md`.
+  Goes through `/ctx:save` in `.context/` projects; elsewhere it writes `~/.cache/ctx/handoffs/<project path>.md`,
+  outside the repo.
 
 ## Hooks
 - **SessionStart canary** (every project): tells Claude to start every reply with `[<hostname>]`. If the tag stops
-  appearing, the start of the session has been lost: run `/ctx:handoff`, then `/clear`. Claude is also told to say so
-  when the session gets very long. It's planted again after compaction, and a fresh `HANDOFF.md` is injected on startup/clear.
+  appearing, Claude has stopped following its session-start instructions; that's a cue to run `/ctx:handoff`, then
+  `/clear`. Claude is also told to flag very long sessions, and after a compaction to suggest a hand-off once. The tag is
+  planted again after compaction, and a pending hand-off note is injected on startup/clear.
   Opt out with `CTX_CANARY=0` in the environment or `canary=0` in `.context/config`.
 - **SessionStart** injects STATE.md, the last session log, and uncommitted changes (projects with `.context/` only).
 - **SessionEnd / PreCompact** autosave: a detached Haiku run writes a log covering work since this host's last log,
-  then commits `.context/` (per `.context/config`: `autocommit`, `autopush`, `autofetch`). Output: `~/.cache/ctx-autosave.log`.
+  then commits `.context/` (per `.context/config`: `autocommit`, `autopush`, `autofetch`). This is the only place
+  commits happen; `/ctx:save` and the agents leave them to it unless you ask. Output: `~/.cache/ctx-autosave.log`.
 
 Log files are named `YYYY-MM-DD-HHMM-<host>.md`, so two machines never edit the same file.

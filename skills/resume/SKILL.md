@@ -1,6 +1,6 @@
 ---
 name: resume
-description: Restore project context from .context/ and recent git activity as a short briefing. Use at the start of a session, after switching workstations, or when asked "where were we" or "what's the status".
+description: Restore project context from .context/ and recent git activity as a short briefing. Use after switching workstations, or when asked "where were we" or "what's the status". Not needed unprompted at session start: the start hook already loads STATE.md and the last log.
 argument-hint: "[optional question about the project's history]"
 ---
 

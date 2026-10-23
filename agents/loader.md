@@ -1,6 +1,6 @@
 ---
 name: loader
-description: Reads a project's .context/ directory plus recent git activity and returns a compact briefing (≤250 words). Use at session start, or after switching workstations, to restore project context without loading every file into the main conversation.
+description: Reads a project's .context/ directory plus recent git activity and returns a compact briefing (≤250 words). Use on request or after switching workstations to restore project context without loading every file into the main conversation.
 model: haiku
 tools: Read, Bash, Glob, Grep
 ---

@@ -4,11 +4,15 @@ description: Record an architectural or product decision (with context, choice, 
 argument-hint: "<decision>"
 ---
 
-Append to `.context/DECISIONS.md` (at the git root) with one Bash heredoc. Write it yourself, since you hold the reasoning:
+Append to `.context/DECISIONS.md` with one Bash command. Write it yourself, since you hold the reasoning; the quoted heredoc keeps `$` and backticks in the text literal:
 ```
-## YYYY-MM-DD: <short title>
+f="$(git rev-parse --show-toplevel 2>/dev/null || pwd)/.context/DECISIONS.md"
+if [ -d "${f%/*}" ]; then { printf '\n## %s: ' "$(date +%F)"; cat <<'DECISION'; } >> "$f"
+<short title>
 **Context:** <why a choice was needed, 1–2 lines>
 **Decision:** <what was chosen; rejected alternatives in brief>
 **Consequences:** <trade-offs and what this rules out>
+DECISION
+else echo "No .context/ here; run /ctx:init first"; fi
 ```
-Use `date +%F`. Stay under 8 lines. Confirm in one line.
+Stay under 8 lines. Confirm in one line.

@@ -17,12 +17,16 @@ root="$(git -C "${cwd:-$PWD}" rev-parse --show-toplevel 2>/dev/null || echo "${c
 [ -d "$root/.context" ] && [ -f "$transcript" ] || exit 0
 
 cd "$root" || exit 0
-exec 9>"$root/.context/.autosave.lock"; flock -n 9 || exit 0
+# Wait for an autosave that is still running (e.g. PreCompact's) rather than dropping this one
+exec 9>"$root/.context/.autosave.lock"; flock -w 900 9 || exit 0
 host="$(hostname -s)"
-last="$(ls -1t .context/log/*-"$host".md 2>/dev/null | head -1)"
-cutoff="$( [ -n "$last" ] && stat -c %Y "$last" || echo 0 )"
+# Cutoff = the start time in the newest log name from this host, not its mtime: a log is written minutes
+# after its run starts, and work done in between would otherwise never be logged
+last="$(ls -1 .context/log/*-"$host".md 2>/dev/null | sort | tail -1)"
+stamp="$(basename "${last:-none}" | grep -oE '^[0-9]{4}-[0-9]{2}-[0-9]{2}-[0-9]{4}')"
+cutoff="$( [ -n "$stamp" ] && date -d "${stamp:0:10} ${stamp:11:2}:${stamp:13:2}" +%s || echo 0 )"
+logfile=".context/log/$(date +%Y-%m-%d-%H%M)-$host.md"   # named before reading the transcript, see cutoff
 digest="$(python3 "$here/extract.py" "$transcript" "$cutoff")" || exit 0
-logfile=".context/log/$(date +%Y-%m-%d-%H%M)-$host.md"
 scribe="$(awk 'f>=2; /^---$/{f++}' "$here/../agents/scribe.md")"   # agent body without frontmatter
 echo "=== $(date '+%F %T') $event $root" >>"$HOME/.cache/ctx-autosave.log"
 # Lean run: only the file tools, no MCP servers or skill listing, and the scribe prompt in place of

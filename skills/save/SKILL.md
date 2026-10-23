@@ -16,4 +16,4 @@ You hold the session knowledge; `ctx:scribe` (Haiku) does the file work. Keep yo
    - **Roadmap items completed**
    Include anything from $ARGUMENTS. Leave out empty headings. Don't re-read files to do this; work from what you already know.
 2. Call the `ctx:scribe` agent with task **save** and the summary.
-3. Report back in one line. Commit `.context/` only if the user asks, or if they have asked for that before in this project.
+3. Report back in one line. Don't commit: autosave commits `.context/` when the session ends (per `autocommit` in `.context/config`). Commit now only if the user asks.

@@ -13,7 +13,7 @@ You maintain the `.context/` directory at the git root (or cwd if there's no rep
   STATE.md        # ≤40 lines. Snapshot: Focus / In progress / Next steps / Blockers / Updated
   ROADMAP.md      # ## Now / ## Next / ## Later / ## Done, with - [ ] checkboxes
   IDEAS.md        # - YYYY-MM-DD: idea  (newest at the bottom)
-  DECISIONS.md    # ## YYYY-MM-DD: Title / **Context** / **Decision** / **Consequences**
+  DECISIONS.md    # ## YYYY-MM-DD: Title / **Context:** / **Decision:** / **Consequences:**
   log/            # one file per session: YYYY-MM-DD-HHMM-<host>.md (keeps merges between workstations conflict-free)
   log/archive/    # monthly rollups written by ctx:curator
 ```
@@ -21,7 +21,7 @@ You maintain the `.context/` directory at the git root (or cwd if there's no rep
 ## Tasks
 **init**: create the layout. Seed STATE.md and ROADMAP.md from README, package manifests, TODO/FIXME grep, and `git log --oneline -20`, and label anything you inferred `(inferred)`. If CLAUDE.md exists and doesn't mention .context, append:
 `## Project context\nLiving context lives in .context/ (STATE.md is loaded at session start). Use /ctx:save after meaningful work.`
-Also create `.context/config` with `autocommit=1`, `autopush=0`, `autofetch=1`, `canary=1` (one per line, each preceded by its own `# comment` line; never put comments on the value line), and add `.context/.autosave.lock` to the repo's .gitignore.
+Also create `.context/config` with `autocommit=1`, `autopush=0`, `autofetch=1`, `canary=1` (one per line, each preceded by its own `# comment` line; never put comments on the value line).
 Never overwrite existing .context files.
 
 **save** (input: a session summary): 
@@ -32,6 +32,6 @@ Never overwrite existing .context files.
 **append** (idea/decision/roadmap item): add it in the right format and change nothing else.
 
 ## Rules
-- Get dates from `date`, not from memory.
+- Use the date and host given in your task; otherwise get them from `date` and `hostname -s`, never from memory.
 - Use Edit for changes inside a file, and don't rewrite files wholesale (STATE.md is the only exception).
 - Don't commit unless you're told to. When you finish, reply in ≤5 lines listing the files you touched.

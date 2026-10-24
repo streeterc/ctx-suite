@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """ctx autosave helper.
   autosave.py digest <transcript> <cutoff_epoch>        -> condensed transcript on stdout, exit 3 if trivial
+      (CTX_LEAN=1: any session without edits counts as trivial)
   autosave.py apply <root> <logfile> <date> <host>      <- `claude -p --output-format json` on stdin;
       writes the log, STATE.md, IDEAS.md, DECISIONS.md and roadmap ticks, and prints a usage line."""
 import json, os, re, sys
@@ -8,6 +9,8 @@ from datetime import datetime
 
 SKIP_TOOLS = {"Read", "Grep", "Glob", "ToolSearch", "TodoWrite"}  # lookups: noise for a session log
 EDIT_TOOLS = {"Edit", "Write", "NotebookEdit"}
+# Shell commands that change files, so lean mode doesn't mistake a Bash-edited session for a read-only one
+SHELL_EDIT = re.compile(r"sed -i|(?<![0-9&>])>>?\s*(?!&|/dev/null)[^\s]|\btee\b|\b(mv|cp|rm|mkdir|touch|patch)\s|git (commit|apply|checkout|restore|mv|rm)\b")
 
 
 def digest(path, cutoff):
@@ -37,15 +40,15 @@ def digest(path, cutoff):
                 out.append(f"{role}: {text[:1500 if role == 'USER' else 600]}")
             elif t == "tool_use":
                 name = b.get("name", "?")
-                if name in EDIT_TOOLS:
+                if name in EDIT_TOOLS or (name == "Bash" and SHELL_EDIT.search((b.get("input") or {}).get("command", ""))):
                     edits += 1
                 if name in SKIP_TOOLS:
                     continue
                 i = b.get("input") or {}
                 arg = i.get("file_path") or i.get("description") or i.get("command") or i.get("prompt") or ""
                 out.append(f"  [{name}: {str(arg)[:150]}]")
-    if prompts < 3 and edits == 0:
-        sys.exit(3)  # trivial session, nothing worth logging
+    if edits == 0 and (prompts < 3 or os.environ.get("CTX_LEAN") == "1"):
+        sys.exit(3)  # trivial or (lean=1) read-only session, nothing worth logging
     print("\n".join(out)[-20000:])  # the tail is what matters for "where we left off"
 
 

@@ -1,7 +1,8 @@
 ---
 name: save
-description: Checkpoint the current session into .context/ by writing a session log, refreshing STATE.md, ticking roadmap items, and capturing ideas and decisions. Use at the end of meaningful work, before switching machines, before /compact, or when the user says "save context", "log this", or "checkpoint".
 argument-hint: "[optional note or focus]"
+disable-model-invocation: true
+description: Checkpoint the session into .context/ now (log, STATE.md, roadmap, ideas, decisions). Autosave already does this on exit and /compact; use this only to save mid-session.
 ---
 
 You hold the session knowledge; `ctx:scribe` (Haiku) does the file work. Keep your own output small.

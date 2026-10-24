@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # SessionEnd / PreCompact hook: checkpoint the session into .context/ automatically.
 # Spawns a detached headless Haiku run so it never blocks exit. Skips trivial sessions and
-# only covers activity since the last log written on this host (so manual /ctx:save isn't duplicated).
+# only covers activity since the last log written on this host (so a manual /ctx:save isn't duplicated).
 [ -n "$CTX_AUTOSAVE" ] && exit 0                     # don't recurse from the child run
 here="$(cd "$(dirname "$0")" && pwd)"
 input="$(cat)"
@@ -26,27 +26,30 @@ last="$(ls -1 .context/log/*-"$host".md 2>/dev/null | sort | tail -1)"
 stamp="$(basename "${last:-none}" | grep -oE '^[0-9]{4}-[0-9]{2}-[0-9]{2}-[0-9]{4}')"
 cutoff="$( [ -n "$stamp" ] && date -d "${stamp:0:10} ${stamp:11:2}:${stamp:13:2}" +%s || echo 0 )"
 logfile=".context/log/$(date +%Y-%m-%d-%H%M)-$host.md"   # named before reading the transcript, see cutoff
-digest="$(python3 "$here/extract.py" "$transcript" "$cutoff")" || exit 0
-scribe="$(awk 'f>=2; /^---$/{f++}' "$here/../agents/scribe.md")"   # agent body without frontmatter
-echo "=== $(date '+%F %T') $event $root" >>"$HOME/.cache/ctx-autosave.log"
-# Lean run: only the file tools, no MCP servers or skill listing, and the scribe prompt in place of
-# Claude Code's default system prompt (cuts the fixed load per turn from ~23k tokens to ~4k)
-tools="Read,Write,Edit,Glob,Grep"
-CTX_AUTOSAVE=1 claude -p --model haiku --no-session-persistence \
-  --permission-mode acceptEdits --tools "$tools" --allowedTools "$tools" \
-  --strict-mcp-config --disable-slash-commands \
-  --system-prompt "$scribe" >>"$HOME/.cache/ctx-autosave.log" 2>&1 <<PROMPT
-Task: save (automatic ${event} checkpoint). Date: $(date '+%F %H:%M'). Host: $host. Project root: $root
-You have no Bash in this run: use the date and host given here instead of running date/hostname.
-File tools need absolute paths: every .context path below is relative to the project root.
-Write the session log to exactly: $root/$logfile  (title line should end with "(auto)").
-Then update .context/STATE.md, ROADMAP.md, IDEAS.md, DECISIONS.md as your instructions say.
-Most important: an accurate "Open threads / next steps" section capturing exactly what was in progress
-at the END of the transcript, so the next session can resume mid-task.
-Below is a condensed transcript of the work since the last checkpoint (tool calls in [brackets]):
+digest="$(python3 "$here/autosave.py" digest "$transcript" "$cutoff")" || exit 0
+out="$HOME/.cache/ctx-autosave.log"
+echo "=== $(date '+%F %T') $event $root" >>"$out"
+# One-shot run: no tools, so Haiku answers in a single turn and autosave.py writes the files. An agent loop
+# re-sent the digest and every file it had read on each of ~8 turns.
+CTX_AUTOSAVE=1 claude -p --model haiku --no-session-persistence --tools "" \
+  --strict-mcp-config --disable-slash-commands --output-format json \
+  --system-prompt "$(cat "$here/autosave-prompt.md")" 2>>"$out" <<PROMPT |
+Automatic ${event} checkpoint. Date: $(date '+%F %H:%M'). Host: $host.
+
+Current STATE.md:
+$(cat .context/STATE.md 2>/dev/null || echo "(none yet)")
+
+Decisions already recorded (never repeat or reword these):
+$(grep -E '^## ' .context/DECISIONS.md 2>/dev/null | sed 's/^## [0-9-]*:* *//' || true)
+
+Open roadmap items:
+$(grep -E '^\s*- \[ \]' .context/ROADMAP.md 2>/dev/null | sed 's/^\s*- \[ \] /- /' || true)
+
+Condensed transcript of the work since the last checkpoint (tool calls in [brackets]):
 
 $digest
 PROMPT
+  python3 "$here/autosave.py" apply "$root" "$logfile" "$(date +%F)" "$host" >>"$out" 2>&1 || exit 0
 # Git sync of .context/ only, per .context/config (autocommit=1 default, autopush=0 default)
 conf() { grep -E "^$1=" .context/config 2>/dev/null | tail -1 | cut -d= -f2 | sed 's/[[:space:]#].*//'; }
 if git rev-parse --git-dir >/dev/null 2>&1 && [ "$(conf autocommit)" != 0 ]; then

@@ -1,8 +1,8 @@
 ---
 name: curator
-description: Periodic maintenance of a project's .context/ directory. Reconciles the roadmap with git history, rolls old session logs into monthly archives, dedupes and triages ideas, and keeps STATE.md accurate and short. Run weekly or when .context feels stale.
 model: sonnet
 tools: Read, Write, Edit, Bash, Glob, Grep
+description: Tidies .context/ by archiving old logs, reconciling the roadmap with git, deduping ideas and trimming STATE.md. Used by /ctx:curate.
 ---
 
 You curate `.context/` at the git root. The aim is a context set that stays small, accurate, and cheap to load.

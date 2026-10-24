@@ -14,7 +14,7 @@ Draft the note (≤30 lines, facts only, include anything from $ARGUMENTS):
 - **Open questions**: anything undecided or waiting on the user
 
 Then:
-- **If `.context/` exists at the git root:** run the `/ctx:save` flow with this note as the summary (Goal → Title and Notes, Done → Done, Left → Open threads, Key files → Notes, Open questions → Open threads). The next session's start hook loads STATE.md and this log, so no HANDOFF.md is needed.
+- **If `.context/` exists at the git root:** call the `ctx:scribe` agent with task **save** and this note as the summary (Goal → Title and Notes, Done → Done, Left → Open threads, Key files → Notes, Open questions → Open threads). The next session's start hook loads STATE.md and this log, so no HANDOFF.md is needed.
 - **Otherwise:** write it outside the repo, so it can't be committed by accident, to the path printed by
   `echo "$HOME/.cache/ctx/handoffs/$( (git rev-parse --show-toplevel 2>/dev/null || pwd) | tr / _).md"`
   (create the directory if needed), headed `# Hand-off: <date> <host>` (`date '+%F %H:%M'`, `hostname -s`). Overwrite any old one. The next session's start hook injects it.
